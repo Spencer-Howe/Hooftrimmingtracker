@@ -1,0 +1,31 @@
+# Secrets — Gmail App Password, secret key
+.env
+.env.*
+!.env.example
+
+# Database (real customer data) and backups
+instance/
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  {% if coming %}
+  <h1>You're confirmed!</h1>
+  <p class="when">{{ stop.trip.area }} · {{ stop.trip.dates }}</p>
+  <p>Thanks — we'll reach out with your time as we get closer. Need to change something? Use the same link from your email.</p>
+  {% else %}
+  <h1>No problem</h1>
+  <p>Thanks for letting us know. You'll stay on our list and we'll email you next time we're in your area.</p>
+  {% endif %}
+</div>
+{% endblock %}

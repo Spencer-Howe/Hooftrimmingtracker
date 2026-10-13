@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Get on the list — {{ business }}{% endblock %}
+{% block content %}
+<h1>Get on the list</h1>
+<p class="lead">{{ business }} covers a big area. Sign up and we'll email you when we're planning a trip to your area.</p>
+
+<form method="post" class="card">
+  {% if errors %}
+  <ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" value="{{ form.get('name', '') }}" required autocomplete="name">
+
+  <label for="email">Email</label>
+  <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required autocomplete="email">
+
+  <label for="phone">Phone <span class="opt">(optional)</span></label>
+  <input type="tel" id="phone" name="phone" value="{{ form.get('phone', '') }}" autocomplete="tel">
+
+  <label for="zip_code">Zip code where the animals are</label>
+  <input type="text" id="zip_code" name="zip_code" value="{{ form.get('zip_code', '') }}" required inputmode="numeric" pattern="\d{5}" maxlength="5">
+
+  <label>Animals</label>
+  <div class="checks">
+    {% for a in animals %}
+    <label><input type="checkbox" name="animals" value="{{ a }}" {% if a in form.getlist('animals') %}checked{% endif %}>{{ a }}</label>
+    {% endfor %}
+  </div>
+
+  <label for="notes">What do you need? <span class="opt">(shearing, hoof trims, how many animals)</span></label>
+  <textarea id="notes" name="notes" rows="3">{{ form.get('notes', '') }}</textarea>
+
+  <div class="hp" aria-hidden="true">
+    <label for="website">Leave this empty</label>
+    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+  </div>
+
+  <button type="submit">Sign me up</button>
+</form>
+{% endblock %}

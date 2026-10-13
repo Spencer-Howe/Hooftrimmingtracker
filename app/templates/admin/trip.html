@@ -1,0 +1,83 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<p class="mt-3 mb-1"><a href="{{ url_for('.index') }}">← All trips</a></p>
+<h3 class="mb-1">{{ trip.area }}</h3>
+<form method="post" action="{{ url_for('.update_dates', trip_id=trip.id) }}" class="form-inline mb-4">
+  <input class="form-control mr-2 mb-2" name="dates" value="{{ trip.dates }}" aria-label="Dates">
+  <button class="btn btn-outline-secondary btn-sm mb-2">Update dates</button>
+</form>
+
+<div class="row">
+  {% for step, label, help, done in [
+      ('projected', '1. Send projected dates', 'A heads-up — dates aren\'t final.', projected_done),
+      ('firm', '2. Send firm dates', 'Each person gets their own link to confirm.', firm_done)] %}
+  <div class="col-lg-6 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ label }} {% if done %}<span class="badge badge-success">sent</span>{% endif %}</h5>
+        <p class="text-muted small mb-2">{{ help }}
+          {% if done %}Pressing send again only emails people who haven't gotten it (like new sign-ups).{% endif %}</p>
+        <form method="post" action="{{ url_for('.send', trip_id=trip.id, step=step) }}"
+              onsubmit='return confirm({{ ("Send to everyone in " ~ trip.area ~ " who has not gotten it yet?") | tojson }})'>
+          <input class="form-control mb-2" name="subject" value="{{ defaults[step][0] }}" aria-label="Subject">
+          <textarea class="form-control mb-2" name="body" rows="7" aria-label="Message">{{ defaults[step][1] }}</textarea>
+          <small class="form-text text-muted mb-2">{name}, {area}, {dates}{% if step == 'firm' %}, {link}{% endif %} fill in automatically.</small>
+          <button class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<h4 class="mt-3">Confirmed ({{ confirmed | length }})</h4>
+<div class="table-responsive">
+<table class="table table-sm bg-white">
+  <thead class="thead-light"><tr><th>Name</th><th>Phone</th><th class="d-none d-md-table-cell">Zip</th><th>Animals</th><th>For this visit</th><th></th></tr></thead>
+  <tbody>
+  {% for s in confirmed %}
+    <tr>
+      <td>{{ s.customer.name }}</td>
+      <td><a href="tel:{{ s.customer.phone }}" class="text-nowrap">{{ s.customer.phone or '' }}</a></td>
+      <td class="d-none d-md-table-cell">{{ s.customer.zip_code or '' }}</td>
+      <td>{{ s.customer.animals or '' }}</td>
+      <td style="white-space: pre-line">{{ s.visit_notes or s.customer.notes or '' }}</td>
+      <td class="text-right">
+        <form method="post" action="{{ url_for('.mark', stop_id=s.id, answer='undo') }}">
+          <button class="btn btn-link btn-sm p-0">undo</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="text-muted">Nobody yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h4 class="mt-4">Everyone else in {{ trip.area }} ({{ others | length }})</h4>
+<div class="table-responsive">
+<table class="table table-sm bg-white">
+  <thead class="thead-light"><tr><th>Name</th><th>Phone</th><th>Status</th><th>Confirmed by text/phone?</th></tr></thead>
+  <tbody>
+  {% for s in others %}
+    <tr>
+      <td>{{ s.customer.name }}</td>
+      <td><a href="tel:{{ s.customer.phone }}" class="text-nowrap">{{ s.customer.phone or '' }}</a></td>
+      <td>{{ status(s) }}</td>
+      <td>
+        <form method="post" action="{{ url_for('.mark', stop_id=s.id, answer='yes') }}" class="d-inline">
+          <button class="btn btn-outline-success btn-sm">Confirm</button>
+        </form>
+        {% if not s.declined_at %}
+        <form method="post" action="{{ url_for('.mark', stop_id=s.id, answer='no') }}" class="d-inline">
+          <button class="btn btn-outline-secondary btn-sm">Can't make it</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

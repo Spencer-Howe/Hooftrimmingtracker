@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Confirm your spot — {{ business }}{% endblock %}
+{% block content %}
+<h1>Confirm your spot</h1>
+<p class="when">{{ stop.trip.area }} · {{ stop.trip.dates }}</p>
+{% if stop.confirmed_at %}
+<p class="lead">You're already confirmed ✔ — update anything below and press the button again.</p>
+{% elif stop.declined_at %}
+<p class="lead">You told us you can't make it this time. Changed your mind? Confirm below.</p>
+{% else %}
+<p class="lead">Check your details and let us know if you'd like a visit.</p>
+{% endif %}
+
+<form method="post" class="card">
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" value="{{ customer.name }}" autocomplete="name">
+
+  <label for="phone">Phone</label>
+  <input type="tel" id="phone" name="phone" value="{{ customer.phone or '' }}" autocomplete="tel">
+
+  <label>Animals</label>
+  <div class="checks">
+    {% for a in animals %}
+    <label><input type="checkbox" name="animals" value="{{ a }}" {% if a in selected %}checked{% endif %}>{{ a }}</label>
+    {% endfor %}
+  </div>
+
+  <label for="visit_notes">For this visit <span class="opt">(what you need, how many animals, best day, gate code)</span></label>
+  <textarea id="visit_notes" name="visit_notes" rows="3">{{ stop.visit_notes or '' }}</textarea>
+
+  <button type="submit" name="answer" value="yes">Yes, count me in</button>
+  <button type="submit" name="answer" value="no" class="secondary">Can't make it this time</button>
+</form>
+{% endblock %}

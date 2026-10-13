@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      TZ: America/Los_Angeles
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance   # SQLite database lives here
+    restart: unless-stopped

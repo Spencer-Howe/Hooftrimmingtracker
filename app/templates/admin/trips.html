@@ -1,0 +1,46 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<div class="card mt-3 mb-4">
+  <div class="card-body">
+    <h4 class="card-title">Plan a trip</h4>
+    <form method="post" action="{{ url_for('.create') }}" class="form-row align-items-end">
+      <div class="col-md-5 mb-2">
+        <label for="area">Area</label>
+        <select class="form-control" id="area" name="area" required>
+          <option value="">Choose…</option>
+          {% for area, count in areas %}
+          <option value="{{ area }}">{{ area }} ({{ count }} customers)</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 mb-2">
+        <label for="dates">Dates</label>
+        <input class="form-control" id="dates" name="dates" placeholder="Oct 20–22" required>
+      </div>
+      <div class="col-md-3 mb-2">
+        <button class="btn btn-primary btn-block">Create trip</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<h4>Trips</h4>
+<div class="table-responsive">
+<table class="table table-sm table-hover bg-white">
+  <thead class="thead-light"><tr><th>Area</th><th>Dates</th><th>Projected sent</th><th>Firm sent</th><th>Confirmed</th></tr></thead>
+  <tbody>
+  {% for t in trips %}
+    <tr>
+      <td><a href="{{ url_for('.trip', trip_id=t.id) }}">{{ t.area }}</a></td>
+      <td>{{ t.dates }}</td>
+      <td>{{ t.stops | selectattr('projected_sent_at') | list | length }}</td>
+      <td>{{ t.stops | selectattr('firm_sent_at') | list | length }}</td>
+      <td class="font-weight-bold">{{ t.stops | selectattr('confirmed_at') | list | length }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">No trips yet — plan one above.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

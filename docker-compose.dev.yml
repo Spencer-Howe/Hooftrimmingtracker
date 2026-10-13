@@ -1,0 +1,27 @@
+# Local dev: docker compose -f docker-compose.dev.yml up --build
+#   Portal:     http://localhost:5001        (admin login: kelsey / demo)
+#   Email inbox: http://localhost:8025       (Mailpit catches every email; nothing really sends)
+services:
+  web:
+    build: .
+    command: sh -c "flask init-db && flask create-user kelsey --password demo && flask run --host 0.0.0.0 --port 5000 --debug"
+    environment:
+      FLASK_APP: run.py
+      FLASK_SECRET_KEY: dev-only
+      TZ: America/Los_Angeles
+      GMAIL_USERNAME: kelsey@example.com
+      MAIL_SERVER: mailpit
+      MAIL_PORT: "1025"
+      MAIL_USE_SSL: "0"
+      MAIL_USE_TLS: "0"
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app   # live code reload
+    depends_on:
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit:v1.20.0
+    ports:
+      - "8025:8025"
