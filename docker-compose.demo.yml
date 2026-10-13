@@ -1,14 +1,19 @@
 # Public demo (demo.howedigitalsystems.com) — fake data, NO real email.
+# Served through a Cloudflare Tunnel, so it needs no open ports and doesn't touch other apps on the box.
+#
+#   .env.demo:  FLASK_SECRET_KEY=<openssl rand -hex 32>
+#               TUNNEL_TOKEN=<from Cloudflare Zero Trust > Networks > Tunnels>
 #   docker compose -f docker-compose.demo.yml up -d --build
 #   docker compose -f docker-compose.demo.yml exec web flask create-user demo
 #   docker compose -f docker-compose.demo.yml exec web flask seed-demo
-# Only listens on 127.0.0.1: nginx on the host proxies the subdomain to port 5001.
-# Caught emails: ssh -L 8025:127.0.0.1:8025 ubuntu@SERVER, then open http://localhost:8025
+#
+# Tunnel public hostname: demo.howedigitalsystems.com -> HTTP -> web:5000
+# Caught emails: ssh -L 8025:127.0.0.1:8025 <server>, then open http://localhost:8025
 services:
   web:
     build: .
     command: sh -c "flask init-db && gunicorn --bind 0.0.0.0:5000 --workers 2 run:app"
-    env_file: .env.demo   # just FLASK_SECRET_KEY=<long random string>
+    env_file: .env.demo
     environment:
       FLASK_APP: run.py
       TZ: America/Los_Angeles
@@ -19,7 +24,7 @@ services:
       MAIL_USE_SSL: "0"
       MAIL_USE_TLS: "0"
     ports:
-      - "127.0.0.1:5001:5000"
+      - "127.0.0.1:5001:5000"    # local checks only; the public goes through the tunnel
     volumes:
       - ./instance-demo:/app/instance
     depends_on:
@@ -31,5 +36,14 @@ services:
     image: axllent/mailpit:v1.20.0
     ports:
       - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+    mem_limit: 100m
+
+  tunnel:
+    image: cloudflare/cloudflared:2024.12.2
+    command: tunnel --no-autoupdate run
+    env_file: .env.demo          # reads TUNNEL_TOKEN
+    depends_on:
+      - web
     restart: unless-stopped
     mem_limit: 100m
