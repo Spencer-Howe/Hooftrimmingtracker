@@ -1,0 +1,35 @@
+# Public demo (demo.howedigitalsystems.com) — fake data, NO real email.
+#   docker compose -f docker-compose.demo.yml up -d --build
+#   docker compose -f docker-compose.demo.yml exec web flask create-user demo
+#   docker compose -f docker-compose.demo.yml exec web flask seed-demo
+# Only listens on 127.0.0.1: nginx on the host proxies the subdomain to port 5001.
+# Caught emails: ssh -L 8025:127.0.0.1:8025 ubuntu@SERVER, then open http://localhost:8025
+services:
+  web:
+    build: .
+    command: sh -c "flask init-db && gunicorn --bind 0.0.0.0:5000 --workers 2 run:app"
+    env_file: .env.demo   # just FLASK_SECRET_KEY=<long random string>
+    environment:
+      FLASK_APP: run.py
+      TZ: America/Los_Angeles
+      BUSINESS_NAME: Kelsey Trimming Services (Demo)
+      GMAIL_USERNAME: demo@howedigitalsystems.com
+      MAIL_SERVER: mailpit       # every email lands in Mailpit, never the internet
+      MAIL_PORT: "1025"
+      MAIL_USE_SSL: "0"
+      MAIL_USE_TLS: "0"
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      - ./instance-demo:/app/instance
+    depends_on:
+      - mailpit
+    restart: unless-stopped
+    mem_limit: 300m
+
+  mailpit:
+    image: axllent/mailpit:v1.20.0
+    ports:
+      - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+    mem_limit: 100m
